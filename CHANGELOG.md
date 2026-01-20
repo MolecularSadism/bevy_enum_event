@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.2] - 2026-01-20
+
+### Changed
+- Renamed `EnumEvent` to `EnumMessage` to align with Bevy 0.17+ nomenclature (Event → Message)
+- `EnumEntityEvent` remains unchanged
+
 ## [0.3.0] - 2026-01-20
 
 ### Changed
@@ -22,7 +28,7 @@
 ## [0.1.0] - 2025-10-20
 
 ### Added
-- `EnumEvent` derive macro for global events
+- `EnumMessage` derive macro for global messages (originally named `EnumEvent`)
 - Support for unit, tuple, and named field variants
 - `deref` feature (default) for ergonomic field access
 - Full support for generics and lifetimes

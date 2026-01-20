@@ -7,10 +7,10 @@
 //! - Mixed variants in a single enum
 //! - Deref behavior for single-field variants
 
-use bevy_enum_event::EnumEvent;
+use bevy_enum_event::EnumMessage;
 
 // Example 1: Unit variants only (e.g., simple state machine)
-#[derive(EnumEvent, Clone, Copy, Debug)]
+#[derive(EnumMessage, Clone, Copy, Debug)]
 #[allow(dead_code)]
 pub enum PlayerState {
     Idle,
@@ -19,7 +19,7 @@ pub enum PlayerState {
 }
 
 // Example 2: Mixed variants with data (realistic game events)
-#[derive(EnumEvent, Clone, Debug)]
+#[derive(EnumMessage, Clone, Debug)]
 #[allow(dead_code)]
 pub enum GameEvent {
     /// A player wins with their team name
@@ -31,7 +31,7 @@ pub enum GameEvent {
 }
 
 // Example 3: Single-field variants (benefit from deref feature)
-#[derive(EnumEvent, Clone, Debug)]
+#[derive(EnumMessage, Clone, Debug)]
 #[allow(dead_code)]
 pub enum NetworkEvent {
     MessageReceived(String),
