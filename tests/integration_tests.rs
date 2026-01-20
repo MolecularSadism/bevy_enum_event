@@ -414,7 +414,6 @@ pub struct ArmorOf(Entity);
 #[relationship_target(relationship = ArmorOf)]
 pub struct ArmorParts(Vec<Entity>);
 
-
 #[derive(EnumEntityEvent, Clone, Copy)]
 #[enum_event(auto_propagate, propagate =  &'static crate::ArmorOf)]
 #[allow(dead_code)]
@@ -429,10 +428,7 @@ fn test_armor_goblin_propagation_custom() {
 
     // Spawn parent (goblin) with child (armor) to establish ChildOf relationship
     let goblin_id = app.world_mut().spawn(HitPoints(50)).id();
-    let armor_id = app
-        .world_mut()
-        .spawn((Armor(10), ArmorOf(goblin_id)))
-        .id();
+    let armor_id = app.world_mut().spawn((Armor(10), ArmorOf(goblin_id))).id();
 
     // Add observer on goblin - takes damage if attack gets through armor
     app.world_mut().entity_mut(goblin_id).observe(
@@ -529,19 +525,31 @@ pub struct ShieldedBy(Vec<Entity>);
 #[allow(dead_code)]
 enum VariantLevelPropagateEvent {
     // Variant A: No propagation (baseline - should not propagate)
-    NoPropagation { entity: Entity, damage: u16 },
+    NoPropagation {
+        entity: Entity,
+        damage: u16,
+    },
 
     // Variant B: Basic propagate with default relationship (manual control)
     #[enum_event(propagate)]
-    BasicPropagate { entity: Entity, damage: u16 },
+    BasicPropagate {
+        entity: Entity,
+        damage: u16,
+    },
 
     // Variant C: Auto-propagate with default relationship (ChildOf)
     #[enum_event(auto_propagate, propagate)]
-    AutoPropagate { entity: Entity, damage: u16 },
+    AutoPropagate {
+        entity: Entity,
+        damage: u16,
+    },
 
     // Variant D: Auto-propagate with custom relationship (ShieldOf)
     #[enum_event(auto_propagate, propagate = &'static crate::ShieldOf)]
-    AutoPropagateCustom { entity: Entity, damage: u16 },
+    AutoPropagateCustom {
+        entity: Entity,
+        damage: u16,
+    },
 }
 
 #[test]
@@ -552,15 +560,22 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
 
     // Setup hierarchy: Parent <- Child (using ChildOf)
     let parent = app.world_mut().spawn(DamageLog(vec![])).id();
-    let child = app.world_mut().spawn((DamageLog(vec![]), ChildOf(parent))).id();
+    let child = app
+        .world_mut()
+        .spawn((DamageLog(vec![]), ChildOf(parent)))
+        .id();
 
     // Setup hierarchy with custom relationship: Protected <- Shield (using ShieldOf)
     let protected = app.world_mut().spawn(DamageLog(vec![])).id();
-    let shield = app.world_mut().spawn((DamageLog(vec![]), ShieldOf(protected))).id();
+    let shield = app
+        .world_mut()
+        .spawn((DamageLog(vec![]), ShieldOf(protected)))
+        .id();
 
     // Add observers on parents
     app.world_mut().entity_mut(parent).observe(
-        |event: On<variant_level_propagate_event::NoPropagation>, mut query: Query<&mut DamageLog>| {
+        |event: On<variant_level_propagate_event::NoPropagation>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("parent_no_prop_{}", event.damage));
             }
@@ -568,7 +583,8 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     );
 
     app.world_mut().entity_mut(parent).observe(
-        |event: On<variant_level_propagate_event::BasicPropagate>, mut query: Query<&mut DamageLog>| {
+        |event: On<variant_level_propagate_event::BasicPropagate>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("parent_basic_{}", event.damage));
             }
@@ -576,7 +592,8 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     );
 
     app.world_mut().entity_mut(parent).observe(
-        |event: On<variant_level_propagate_event::AutoPropagate>, mut query: Query<&mut DamageLog>| {
+        |event: On<variant_level_propagate_event::AutoPropagate>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("parent_auto_{}", event.damage));
             }
@@ -584,16 +601,19 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     );
 
     app.world_mut().entity_mut(protected).observe(
-        |event: On<variant_level_propagate_event::AutoPropagateCustom>, mut query: Query<&mut DamageLog>| {
+        |event: On<variant_level_propagate_event::AutoPropagateCustom>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
-                log.0.push(format!("protected_auto_custom_{}", event.damage));
+                log.0
+                    .push(format!("protected_auto_custom_{}", event.damage));
             }
         },
     );
 
     // Add observers on children
     app.world_mut().entity_mut(child).observe(
-        |event: On<variant_level_propagate_event::NoPropagation>, mut query: Query<&mut DamageLog>| {
+        |event: On<variant_level_propagate_event::NoPropagation>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("child_no_prop_{}", event.damage));
             }
@@ -601,7 +621,8 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     );
 
     app.world_mut().entity_mut(child).observe(
-        |mut event: On<variant_level_propagate_event::BasicPropagate>, mut query: Query<&mut DamageLog>| {
+        |mut event: On<variant_level_propagate_event::BasicPropagate>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("child_basic_{}", event.damage));
                 // Manually enable propagation for this test
@@ -611,7 +632,8 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     );
 
     app.world_mut().entity_mut(child).observe(
-        |event: On<variant_level_propagate_event::AutoPropagate>, mut query: Query<&mut DamageLog>| {
+        |event: On<variant_level_propagate_event::AutoPropagate>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("child_auto_{}", event.damage));
                 // Auto-propagate is implicit - no need to call propagate(true)
@@ -620,7 +642,8 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     );
 
     app.world_mut().entity_mut(shield).observe(
-        |event: On<variant_level_propagate_event::AutoPropagateCustom>, mut query: Query<&mut DamageLog>| {
+        |event: On<variant_level_propagate_event::AutoPropagateCustom>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("shield_auto_custom_{}", event.damage));
                 // Auto-propagate is implicit with custom relationship
@@ -631,24 +654,34 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     app.update();
 
     // Test Variant A: NoPropagation - should NOT propagate to parent
-    app.world_mut().trigger(variant_level_propagate_event::NoPropagation {
-        entity: child,
-        damage: 10,
-    });
+    app.world_mut()
+        .trigger(variant_level_propagate_event::NoPropagation {
+            entity: child,
+            damage: 10,
+        });
     app.update();
 
     let child_log = app.world().get::<DamageLog>(child).unwrap();
-    assert_eq!(child_log.0.len(), 1, "Child should have received NoPropagation event");
+    assert_eq!(
+        child_log.0.len(),
+        1,
+        "Child should have received NoPropagation event"
+    );
     assert_eq!(child_log.0[0], "child_no_prop_10");
 
     let parent_log = app.world().get::<DamageLog>(parent).unwrap();
-    assert_eq!(parent_log.0.len(), 0, "Parent should NOT receive NoPropagation event (no propagation)");
+    assert_eq!(
+        parent_log.0.len(),
+        0,
+        "Parent should NOT receive NoPropagation event (no propagation)"
+    );
 
     // Test Variant B: BasicPropagate - should propagate when manually enabled
-    app.world_mut().trigger(variant_level_propagate_event::BasicPropagate {
-        entity: child,
-        damage: 20,
-    });
+    app.world_mut()
+        .trigger(variant_level_propagate_event::BasicPropagate {
+            entity: child,
+            damage: 20,
+        });
     app.update();
 
     let child_log = app.world().get::<DamageLog>(child).unwrap();
@@ -656,14 +689,19 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     assert_eq!(child_log.0[1], "child_basic_20");
 
     let parent_log = app.world().get::<DamageLog>(parent).unwrap();
-    assert_eq!(parent_log.0.len(), 1, "Parent should receive BasicPropagate event (manual propagation)");
+    assert_eq!(
+        parent_log.0.len(),
+        1,
+        "Parent should receive BasicPropagate event (manual propagation)"
+    );
     assert_eq!(parent_log.0[0], "parent_basic_20");
 
     // Test Variant C: AutoPropagate - should auto-propagate with ChildOf
-    app.world_mut().trigger(variant_level_propagate_event::AutoPropagate {
-        entity: child,
-        damage: 30,
-    });
+    app.world_mut()
+        .trigger(variant_level_propagate_event::AutoPropagate {
+            entity: child,
+            damage: 30,
+        });
     app.update();
 
     let child_log = app.world().get::<DamageLog>(child).unwrap();
@@ -671,14 +709,19 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     assert_eq!(child_log.0[2], "child_auto_30");
 
     let parent_log = app.world().get::<DamageLog>(parent).unwrap();
-    assert_eq!(parent_log.0.len(), 2, "Parent should receive AutoPropagate event (auto-propagation)");
+    assert_eq!(
+        parent_log.0.len(),
+        2,
+        "Parent should receive AutoPropagate event (auto-propagation)"
+    );
     assert_eq!(parent_log.0[1], "parent_auto_30");
 
     // Test Variant D: AutoPropagateCustom - should auto-propagate with ShieldOf
-    app.world_mut().trigger(variant_level_propagate_event::AutoPropagateCustom {
-        entity: shield,
-        damage: 40,
-    });
+    app.world_mut()
+        .trigger(variant_level_propagate_event::AutoPropagateCustom {
+            entity: shield,
+            damage: 40,
+        });
     app.update();
 
     let shield_log = app.world().get::<DamageLog>(shield).unwrap();
@@ -686,7 +729,11 @@ fn test_scenario1_no_enum_propagation_variant_definitions() {
     assert_eq!(shield_log.0[0], "shield_auto_custom_40");
 
     let protected_log = app.world().get::<DamageLog>(protected).unwrap();
-    assert_eq!(protected_log.0.len(), 1, "Protected should receive event (auto-propagate with custom relationship)");
+    assert_eq!(
+        protected_log.0.len(),
+        1,
+        "Protected should receive event (auto-propagate with custom relationship)"
+    );
     assert_eq!(protected_log.0[0], "protected_auto_custom_40");
 }
 
@@ -710,23 +757,38 @@ pub struct MountedBy(Vec<Entity>);
 #[allow(dead_code)]
 enum EnumLevelPropagateEvent {
     // Variant A: No override - inherits enum-level (auto_propagate + ChildOf)
-    InheritEnum { entity: Entity, value: u16 },
+    InheritEnum {
+        entity: Entity,
+        value: u16,
+    },
 
     // Variant B: Override with manual propagate + default relationship
     #[enum_event(propagate)]
-    ManualDefault { entity: Entity, value: u16 },
+    ManualDefault {
+        entity: Entity,
+        value: u16,
+    },
 
     // Variant C: Override with auto_propagate + default relationship
     #[enum_event(auto_propagate, propagate)]
-    AutoDefault { entity: Entity, value: u16 },
+    AutoDefault {
+        entity: Entity,
+        value: u16,
+    },
 
     // Variant D: Override with manual propagate + custom relationship (MountOf)
     #[enum_event(propagate = &'static crate::MountOf)]
-    ManualCustom { entity: Entity, value: u16 },
+    ManualCustom {
+        entity: Entity,
+        value: u16,
+    },
 
     // Variant E: Override with auto_propagate + custom relationship (MountOf)
     #[enum_event(auto_propagate, propagate = &'static crate::MountOf)]
-    AutoCustom { entity: Entity, value: u16 },
+    AutoCustom {
+        entity: Entity,
+        value: u16,
+    },
 }
 
 #[test]
@@ -737,11 +799,17 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
 
     // Setup hierarchy with ChildOf relationship: Parent <- Child
     let parent_child = app.world_mut().spawn(DamageLog(vec![])).id();
-    let child_child = app.world_mut().spawn((DamageLog(vec![]), ChildOf(parent_child))).id();
+    let child_child = app
+        .world_mut()
+        .spawn((DamageLog(vec![]), ChildOf(parent_child)))
+        .id();
 
     // Setup hierarchy with MountOf relationship: Rider <- Mount
     let rider = app.world_mut().spawn(DamageLog(vec![])).id();
-    let mount = app.world_mut().spawn((DamageLog(vec![]), MountOf(rider))).id();
+    let mount = app
+        .world_mut()
+        .spawn((DamageLog(vec![]), MountOf(rider)))
+        .id();
 
     // === Variant A: InheritEnum (inherits auto_propagate + ChildOf) ===
     app.world_mut().entity_mut(parent_child).observe(
@@ -771,7 +839,8 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
     );
 
     app.world_mut().entity_mut(child_child).observe(
-        |mut event: On<enum_level_propagate_event::ManualDefault>, mut query: Query<&mut DamageLog>| {
+        |mut event: On<enum_level_propagate_event::ManualDefault>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("child_manual_def_{}", event.value));
                 // Manual propagate - must explicitly enable
@@ -808,7 +877,8 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
     );
 
     app.world_mut().entity_mut(mount).observe(
-        |mut event: On<enum_level_propagate_event::ManualCustom>, mut query: Query<&mut DamageLog>| {
+        |mut event: On<enum_level_propagate_event::ManualCustom>,
+         mut query: Query<&mut DamageLog>| {
             if let Ok(mut log) = query.get_mut(event.entity) {
                 log.0.push(format!("mount_manual_custom_{}", event.value));
                 // Manual propagate with custom relationship
@@ -839,10 +909,11 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
 
     // === Test Variant A: InheritEnum ===
     // Should inherit enum-level: auto_propagate + ChildOf
-    app.world_mut().trigger(enum_level_propagate_event::InheritEnum {
-        entity: child_child,
-        value: 10,
-    });
+    app.world_mut()
+        .trigger(enum_level_propagate_event::InheritEnum {
+            entity: child_child,
+            value: 10,
+        });
     app.update();
 
     let child_log = app.world().get::<DamageLog>(child_child).unwrap();
@@ -850,15 +921,20 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
     assert_eq!(child_log.0[0], "child_inherit_10");
 
     let parent_log = app.world().get::<DamageLog>(parent_child).unwrap();
-    assert_eq!(parent_log.0.len(), 1, "Parent should receive InheritEnum (inherited auto_propagate)");
+    assert_eq!(
+        parent_log.0.len(),
+        1,
+        "Parent should receive InheritEnum (inherited auto_propagate)"
+    );
     assert_eq!(parent_log.0[0], "parent_inherit_10");
 
     // === Test Variant B: ManualDefault ===
     // Override: manual propagate + default ChildOf
-    app.world_mut().trigger(enum_level_propagate_event::ManualDefault {
-        entity: child_child,
-        value: 20,
-    });
+    app.world_mut()
+        .trigger(enum_level_propagate_event::ManualDefault {
+            entity: child_child,
+            value: 20,
+        });
     app.update();
 
     let child_log = app.world().get::<DamageLog>(child_child).unwrap();
@@ -866,15 +942,20 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
     assert_eq!(child_log.0[1], "child_manual_def_20");
 
     let parent_log = app.world().get::<DamageLog>(parent_child).unwrap();
-    assert_eq!(parent_log.0.len(), 2, "Parent should receive ManualDefault (manual propagate called)");
+    assert_eq!(
+        parent_log.0.len(),
+        2,
+        "Parent should receive ManualDefault (manual propagate called)"
+    );
     assert_eq!(parent_log.0[1], "parent_manual_def_20");
 
     // === Test Variant C: AutoDefault ===
     // Override: auto_propagate + default ChildOf
-    app.world_mut().trigger(enum_level_propagate_event::AutoDefault {
-        entity: child_child,
-        value: 30,
-    });
+    app.world_mut()
+        .trigger(enum_level_propagate_event::AutoDefault {
+            entity: child_child,
+            value: 30,
+        });
     app.update();
 
     let child_log = app.world().get::<DamageLog>(child_child).unwrap();
@@ -882,15 +963,20 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
     assert_eq!(child_log.0[2], "child_auto_def_30");
 
     let parent_log = app.world().get::<DamageLog>(parent_child).unwrap();
-    assert_eq!(parent_log.0.len(), 3, "Parent should receive AutoDefault (auto_propagate)");
+    assert_eq!(
+        parent_log.0.len(),
+        3,
+        "Parent should receive AutoDefault (auto_propagate)"
+    );
     assert_eq!(parent_log.0[2], "parent_auto_def_30");
 
     // === Test Variant D: ManualCustom ===
     // Override: manual propagate + MountOf (custom relationship)
-    app.world_mut().trigger(enum_level_propagate_event::ManualCustom {
-        entity: mount,
-        value: 40,
-    });
+    app.world_mut()
+        .trigger(enum_level_propagate_event::ManualCustom {
+            entity: mount,
+            value: 40,
+        });
     app.update();
 
     let mount_log = app.world().get::<DamageLog>(mount).unwrap();
@@ -898,15 +984,20 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
     assert_eq!(mount_log.0[0], "mount_manual_custom_40");
 
     let rider_log = app.world().get::<DamageLog>(rider).unwrap();
-    assert_eq!(rider_log.0.len(), 1, "Rider should receive ManualCustom (manual propagate with MountOf)");
+    assert_eq!(
+        rider_log.0.len(),
+        1,
+        "Rider should receive ManualCustom (manual propagate with MountOf)"
+    );
     assert_eq!(rider_log.0[0], "rider_manual_custom_40");
 
     // === Test Variant E: AutoCustom ===
     // Override: auto_propagate + MountOf (custom relationship)
-    app.world_mut().trigger(enum_level_propagate_event::AutoCustom {
-        entity: mount,
-        value: 50,
-    });
+    app.world_mut()
+        .trigger(enum_level_propagate_event::AutoCustom {
+            entity: mount,
+            value: 50,
+        });
     app.update();
 
     let mount_log = app.world().get::<DamageLog>(mount).unwrap();
@@ -914,6 +1005,10 @@ fn test_scenario2_enum_propagation_with_variant_overrides() {
     assert_eq!(mount_log.0[1], "mount_auto_custom_50");
 
     let rider_log = app.world().get::<DamageLog>(rider).unwrap();
-    assert_eq!(rider_log.0.len(), 2, "Rider should receive AutoCustom (auto_propagate with MountOf)");
+    assert_eq!(
+        rider_log.0.len(),
+        2,
+        "Rider should receive AutoCustom (auto_propagate with MountOf)"
+    );
     assert_eq!(rider_log.0[1], "rider_auto_custom_50");
 }
