@@ -1,14 +1,14 @@
-//! Derive macros that generate Bevy event types from enum variants.
+//! Derive macros that generate Bevy message types from enum variants.
 //!
-//! Each variant becomes a separate event struct in a snake_case module.
+//! Each variant becomes a separate message struct in a snake_case module.
 //!
 //! # Quick Start
 //!
 //! ```rust
 //! use bevy::prelude::*;
-//! use bevy_enum_event::EnumEvent;
+//! use bevy_enum_event::EnumMessage;
 //!
-//! #[derive(EnumEvent, Clone, Copy)]
+//! #[derive(EnumMessage, Clone, Copy)]
 //! enum GameState {
 //!     MainMenu,
 //!     Playing,
@@ -22,15 +22,15 @@
 //!
 //! # Macros
 //!
-//! - `#[derive(EnumEvent)]` - Global events
+//! - `#[derive(EnumMessage)]` - Global messages
 //! - `#[derive(EnumEntityEvent)]` - Entity-targeted events with optional propagation
 //!
-//! # EnumEvent
+//! # EnumMessage
 //!
 //! ```rust
-//! use bevy_enum_event::EnumEvent;
+//! use bevy_enum_event::EnumMessage;
 //!
-//! #[derive(EnumEvent, Clone)]
+//! #[derive(EnumMessage, Clone)]
 //! enum GameEvent {
 //!     Victory(String),
 //!     ScoreChanged { team: u32, score: i32 },
@@ -48,10 +48,10 @@
     feature = "deref",
     doc = r#"
 ```
-use bevy_enum_event::EnumEvent;
+use bevy_enum_event::EnumMessage;
 use std::ops::Deref;
 
-#[derive(EnumEvent, Clone)]
+#[derive(EnumMessage, Clone)]
 enum NetworkEvent {
     MessageReceived(String),
     PlayerScored { #[enum_event(deref)] player: u32, points: u32 },
@@ -230,7 +230,7 @@ fn analyze_field_attrs(attrs: &[Attribute]) -> FieldAttrInfo {
                 }
                 Ok(())
             }) {
-                panic!("EnumEvent: failed to parse #[enum_event(...)] attribute: {err}");
+                panic!("EnumMessage: failed to parse #[enum_event(...)] attribute: {err}");
             }
         } else if path_ends_with_ident(attr.path(), "event_target") {
             info.is_event_target = true;
@@ -272,7 +272,7 @@ fn analyze_variant_attrs(attrs: &[Attribute]) -> VariantAttrInfo {
                     Ok(())
                 }
             }) {
-                panic!("EnumEvent: failed to parse variant #[enum_event(...)] attribute: {err}");
+                panic!("EnumMessage: failed to parse variant #[enum_event(...)] attribute: {err}");
             }
         }
     }
@@ -280,14 +280,14 @@ fn analyze_variant_attrs(attrs: &[Attribute]) -> VariantAttrInfo {
     info
 }
 
-/// Generates Bevy `Event` types from enum variants.
+/// Generates Bevy `Message` types from enum variants.
 ///
-/// Creates a snake_case module with one event struct per variant.
+/// Creates a snake_case module with one message struct per variant.
 ///
 /// ```rust
-/// use bevy_enum_event::EnumEvent;
+/// use bevy_enum_event::EnumMessage;
 ///
-/// #[derive(EnumEvent, Clone)]
+/// #[derive(EnumMessage, Clone)]
 /// enum Action {
 ///     Jump,
 ///     Run(f32),
@@ -295,8 +295,8 @@ fn analyze_variant_attrs(attrs: &[Attribute]) -> VariantAttrInfo {
 /// }
 /// // Generates: action::Jump, action::Run, action::Attack
 /// ```
-#[proc_macro_derive(EnumEvent, attributes(enum_event, deref, deref_mut))]
-pub fn derive_enum_events(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(EnumMessage, attributes(enum_event, deref, deref_mut))]
+pub fn derive_enum_messages(input: TokenStream) -> TokenStream {
     derive_enum_event_impl(input, false)
 }
 
@@ -383,7 +383,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
     // Extract variants from enum
     let variants = match &input.data {
         Data::Enum(data_enum) => &data_enum.variants,
-        _ => panic!("EnumEvent can only be derived for enums"),
+        _ => panic!("EnumMessage can only be derived for enums"),
     };
 
     // Convert EnumName to snake_case for module name
@@ -559,7 +559,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
                         }
                     });
                     quote! {
-                        /// Event type corresponding to the enum variant.
+                        /// Message type corresponding to the enum variant.
                         #[allow(unused_lifetimes, unused_type_parameters)]
                         #[derive(Event, Clone, Copy, Debug, Default)]
                         pub struct #variant_ident #struct_generics_tokens #where_clause {
@@ -569,7 +569,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
                     }
                 } else {
                     quote! {
-                        /// Event type corresponding to the enum variant.
+                        /// Message type corresponding to the enum variant.
                         #[allow(unused_lifetimes, unused_type_parameters)]
                         #[derive(Event, Clone, Copy, Debug, Default)]
                         pub struct #variant_ident #struct_generics_tokens #where_clause;
@@ -598,7 +598,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
                     .count();
 
                 assert!(!(field_count > 1 && deref_attr_fields > 1),
-                        "EnumEvent: variant `{variant_ident}` has multiple fields marked for deref (e.g., #[enum_event(deref)]); only one field can be dereferenced"
+                        "EnumMessage: variant `{variant_ident}` has multiple fields marked for deref (e.g., #[enum_event(deref)]); only one field can be dereferenced"
                     );
 
                 let should_derive_deref =
@@ -663,14 +663,14 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
                 if should_derive_deref {
                     uses_deref_derives = true;
                     quote! {
-                        /// Event type corresponding to the enum variant.
+                        /// Message type corresponding to the enum variant.
                         #[allow(unused_lifetimes, unused_type_parameters)]
                         #[derive(Event, Deref, DerefMut, Clone, Debug)]
                         pub struct #variant_ident #struct_generics_tokens(#(#field_tokens),*) #where_clause;
                     }
                 } else {
                     quote! {
-                        /// Event type corresponding to the enum variant.
+                        /// Message type corresponding to the enum variant.
                         #[allow(unused_lifetimes, unused_type_parameters)]
                         #[derive(Event, Clone, Debug)]
                         pub struct #variant_ident #struct_generics_tokens(#(#field_tokens),*) #where_clause;
@@ -699,7 +699,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
                     .count();
 
                 assert!(!(field_count > 1 && deref_attr_fields > 1),
-                        "EnumEvent: variant `{variant_ident}` has multiple fields marked for deref (e.g., #[enum_event(deref)]); only one field can be dereferenced"
+                        "EnumMessage: variant `{variant_ident}` has multiple fields marked for deref (e.g., #[enum_event(deref)]); only one field can be dereferenced"
                     );
 
                 let should_derive_deref =
@@ -808,7 +808,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
                 if should_derive_deref {
                     uses_deref_derives = true;
                     quote! {
-                        /// Event type corresponding to the enum variant.
+                        /// Message type corresponding to the enum variant.
                         #[allow(unused_lifetimes, unused_type_parameters)]
                         #[derive(#event_derive, Deref, DerefMut, Clone, Debug)]
                         #propagate_attr
@@ -818,7 +818,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
                     }
                 } else {
                     quote! {
-                        /// Event type corresponding to the enum variant.
+                        /// Message type corresponding to the enum variant.
                         #[allow(unused_lifetimes, unused_type_parameters)]
                         #[derive(#event_derive, Clone, Debug)]
                         #propagate_attr
@@ -855,7 +855,7 @@ fn derive_enum_event_impl(input: TokenStream, is_entity_event: bool) -> TokenStr
     };
 
     let expanded = quote! {
-        /// Generated module containing event types for each enum variant.
+        /// Generated module containing message types for each enum variant.
         pub mod #module_name {
             #event_import
             #deref_imports

@@ -1,16 +1,16 @@
 # bevy_enum_event
 
-Derive macros that generate Bevy event types from enum variants.
+Derive macros that generate Bevy message types from enum variants.
 
 ## Overview
 
-Transform enum variants into distinct Bevy event structs automatically. Each variant becomes a separate event type in a snake_case module, eliminating boilerplate while preserving type safety.
+Transform enum variants into distinct Bevy message structs automatically. Each variant becomes a separate message type in a snake_case module, eliminating boilerplate while preserving type safety.
 
 ```rust
 use bevy::prelude::*;
-use bevy_enum_event::EnumEvent;
+use bevy_enum_event::EnumMessage;
 
-#[derive(EnumEvent, Clone)]
+#[derive(EnumMessage, Clone)]
 enum GameEvent {
     Victory(String),
     ScoreChanged { team: u32, score: i32 },
@@ -24,7 +24,7 @@ enum GameEvent {
 
 | Bevy | bevy_enum_event |
 |------|-----------------|
-| 0.18 | 0.3             |
+| 0.18 | 0.3.2           |
 | 0.17 | 0.2             |
 | 0.16 | 0.1             |
 
@@ -32,22 +32,22 @@ enum GameEvent {
 
 ```toml
 [dependencies]
-bevy_enum_event = "0.3"
+bevy_enum_event = "0.3.2"
 ```
 
 ## Macros
 
-- **`EnumEvent`** - Generates global `Event` types
+- **`EnumMessage`** - Generates global `Message` types
 - **`EnumEntityEvent`** - Generates entity-targeted `EntityEvent` types with optional propagation
 
-## EnumEvent
+## EnumMessage
 
 Supports unit, tuple, and named field variants:
 
 ```rust
-use bevy_enum_event::EnumEvent;
+use bevy_enum_event::EnumMessage;
 
-#[derive(EnumEvent, Clone)]
+#[derive(EnumMessage, Clone)]
 enum PlayerState {
     Idle,                           // Unit variant
     Moving(f32),                    // Tuple variant
@@ -72,7 +72,7 @@ fn on_attacking(event: On<player_state::Attacking>) {
 Single-field variants automatically implement `Deref`/`DerefMut`:
 
 ```rust
-#[derive(EnumEvent, Clone)]
+#[derive(EnumMessage, Clone)]
 enum NetworkEvent {
     MessageReceived(String),  // Automatic deref to String
 }
@@ -85,7 +85,7 @@ fn on_message(msg: On<network_event::MessageReceived>) {
 For multi-field variants, mark one field with `#[enum_event(deref)]`:
 
 ```rust
-#[derive(EnumEvent, Clone)]
+#[derive(EnumMessage, Clone)]
 enum GameEvent {
     PlayerScored {
         #[enum_event(deref)]
@@ -193,7 +193,7 @@ enum MixedEvent {
 Full support for generic parameters and lifetimes:
 
 ```rust
-#[derive(EnumEvent, Clone)]
+#[derive(EnumMessage, Clone)]
 enum GenericEvent<'a, T>
 where
     T: Clone + 'a,
