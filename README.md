@@ -25,6 +25,8 @@ enum GameEvent {
 | Bevy | bevy_enum_event |
 |------|-----------------|
 | 0.18 | 0.3             |
+| 0.17 | 0.2             |
+| 0.16 | 0.1             |
 
 ## Installation
 
