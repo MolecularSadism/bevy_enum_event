@@ -24,15 +24,21 @@ fn test_enum_level_propagate() {
 #[allow(dead_code)]
 enum MixedPropagateEvent {
     // Uses enum-level propagate
-    Normal { entity: Entity },
+    Normal {
+        entity: Entity,
+    },
 
     // Overrides with auto_propagate
     #[enum_event(auto_propagate, propagate)]
-    Auto { entity: Entity },
+    Auto {
+        entity: Entity,
+    },
 
     // Overrides with custom relationship
     #[enum_event(propagate = &'static ::bevy::prelude::ChildOf)]
-    Custom { entity: Entity },
+    Custom {
+        entity: Entity,
+    },
 }
 
 #[test]
@@ -48,15 +54,21 @@ fn test_variant_level_override() {
 #[allow(dead_code)]
 enum VariantOnlyPropagateEvent {
     // No propagate
-    None { entity: Entity },
+    None {
+        entity: Entity,
+    },
 
     // Has propagate
     #[enum_event(propagate)]
-    Manual { entity: Entity },
+    Manual {
+        entity: Entity,
+    },
 
     // Has auto_propagate with custom relationship
     #[enum_event(auto_propagate, propagate = &'static ::bevy::prelude::ChildOf)]
-    Auto { entity: Entity },
+    Auto {
+        entity: Entity,
+    },
 }
 
 #[test]
@@ -74,15 +86,21 @@ fn test_variant_only_propagate() {
 #[allow(dead_code)]
 enum AutoPropagateOverrideEvent {
     // Inherits: auto_propagate, propagate
-    InheritAuto { entity: Entity },
+    InheritAuto {
+        entity: Entity,
+    },
 
     // Override: removes auto_propagate, uses custom relation
     #[enum_event(propagate = &'static ::bevy::prelude::ChildOf)]
-    NoAutoCustomRel { entity: Entity },
+    NoAutoCustomRel {
+        entity: Entity,
+    },
 
     // Override: keeps auto_propagate, uses custom relation
     #[enum_event(auto_propagate, propagate = &'static ::bevy::prelude::ChildOf)]
-    WithAutoCustomRel { entity: Entity },
+    WithAutoCustomRel {
+        entity: Entity,
+    },
 }
 
 #[test]
