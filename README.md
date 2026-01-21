@@ -1,16 +1,16 @@
 # bevy_enum_event
 
-Derive macros that generate Bevy message types from enum variants.
+Derive macros that generate Bevy event and message types from enum variants.
 
 ## Overview
 
-Transform enum variants into distinct Bevy message structs automatically. Each variant becomes a separate message type in a snake_case module, eliminating boilerplate while preserving type safety.
+Transform enum variants into distinct Bevy event/message structs automatically. Each variant becomes a separate type in a snake_case module, eliminating boilerplate while preserving type safety.
 
 ```rust
 use bevy::prelude::*;
-use bevy_enum_event::EnumMessage;
+use bevy_enum_event::EnumEvent;
 
-#[derive(EnumMessage, Clone)]
+#[derive(EnumEvent, Clone)]
 enum GameEvent {
     Victory(String),
     ScoreChanged { team: u32, score: i32 },
@@ -24,7 +24,7 @@ enum GameEvent {
 
 | Bevy | bevy_enum_event |
 |------|-----------------|
-| 0.18 | 0.3.2           |
+| 0.18 | 0.3             |
 | 0.17 | 0.2             |
 | 0.16 | 0.1             |
 
@@ -32,22 +32,25 @@ enum GameEvent {
 
 ```toml
 [dependencies]
-bevy_enum_event = "0.3.2"
+bevy_enum_event = "0.3.3"
 ```
 
 ## Macros
 
-- **`EnumMessage`** - Generates global `Message` types
-- **`EnumEntityEvent`** - Generates entity-targeted `EntityEvent` types with optional propagation
+Bevy 0.17+ distinguishes between three event/message types:
 
-## EnumMessage
+- **`EnumEvent`** - Observer-based global events (triggered via `world.trigger()`)
+- **`EnumEntityEvent`** - Entity-targeted observer events with optional propagation
+- **`EnumMessage`** - Buffered messages (written via `MessageWriter`, read via `MessageReader`)
 
-Supports unit, tuple, and named field variants:
+## EnumEvent
+
+For observer-based events that are triggered globally and handled by observers.
 
 ```rust
-use bevy_enum_event::EnumMessage;
+use bevy_enum_event::EnumEvent;
 
-#[derive(EnumMessage, Clone)]
+#[derive(EnumEvent, Clone)]
 enum PlayerState {
     Idle,                           // Unit variant
     Moving(f32),                    // Tuple variant
@@ -55,15 +58,20 @@ enum PlayerState {
 }
 ```
 
-### Using with Observers
+### Using with Triggers and Observers
 
 ```rust
-fn setup(app: &mut App) {
-    app.observe(on_attacking);
+fn setup(mut app: App) {
+    app.add_observer(on_attacking);
 }
 
 fn on_attacking(event: On<player_state::Attacking>) {
-    println!("Attacking {:?}", event.event().target);
+    println!("Attacking {:?}", event.target);
+}
+
+// Trigger the event
+fn trigger_attack(mut commands: Commands) {
+    commands.trigger(player_state::Attacking { target: Entity::PLACEHOLDER });
 }
 ```
 
@@ -72,20 +80,20 @@ fn on_attacking(event: On<player_state::Attacking>) {
 Single-field variants automatically implement `Deref`/`DerefMut`:
 
 ```rust
-#[derive(EnumMessage, Clone)]
+#[derive(EnumEvent, Clone)]
 enum NetworkEvent {
     MessageReceived(String),  // Automatic deref to String
 }
 
 fn on_message(msg: On<network_event::MessageReceived>) {
-    let content: &String = &*msg.event();
+    let content: &String = &**msg;
 }
 ```
 
 For multi-field variants, mark one field with `#[enum_event(deref)]`:
 
 ```rust
-#[derive(EnumMessage, Clone)]
+#[derive(EnumEvent, Clone)]
 enum GameEvent {
     PlayerScored {
         #[enum_event(deref)]
@@ -96,6 +104,42 @@ enum GameEvent {
 ```
 
 Disable with `default-features = false`.
+
+## EnumMessage
+
+For buffered messages that are written/read between systems using `MessageWriter`/`MessageReader`.
+**Important:** Each message type must be registered with `app.add_message::<T>()`.
+
+```rust
+use bevy::prelude::*;
+use bevy_enum_event::EnumMessage;
+
+#[derive(EnumMessage, Clone)]
+enum NetworkCommand {
+    Connect { address: String },
+    Disconnect,
+    SendData(Vec<u8>),
+}
+
+fn setup(app: &mut App) {
+    // REQUIRED: Register message types
+    app.add_message::<network_command::Connect>();
+    app.add_message::<network_command::Disconnect>();
+    app.add_message::<network_command::SendData>();
+}
+
+fn send_commands(mut writer: MessageWriter<network_command::Connect>) {
+    writer.write(network_command::Connect {
+        address: "127.0.0.1:8080".to_string(),
+    });
+}
+
+fn receive_commands(mut reader: MessageReader<network_command::Connect>) {
+    for cmd in reader.read() {
+        println!("Connecting to {}", cmd.address);
+    }
+}
+```
 
 ## EnumEntityEvent
 
@@ -193,7 +237,7 @@ enum MixedEvent {
 Full support for generic parameters and lifetimes:
 
 ```rust
-#[derive(EnumMessage, Clone)]
+#[derive(EnumEvent, Clone)]
 enum GenericEvent<'a, T>
 where
     T: Clone + 'a,
@@ -203,6 +247,14 @@ where
     Done,
 }
 ```
+
+## Choosing the Right Macro
+
+| Pattern | Macro | Use Case |
+|---------|-------|----------|
+| Global triggers + observers | `EnumEvent` | Game events, UI notifications, state changes |
+| Buffered inter-system communication | `EnumMessage` | Network commands, async results, command queues |
+| Entity-targeted observers | `EnumEntityEvent` | Entity interactions, damage systems, component events |
 
 ## License
 

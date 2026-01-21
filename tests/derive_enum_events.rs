@@ -1,8 +1,8 @@
 use bevy::prelude::Entity;
-use bevy_enum_event::{EnumEntityEvent, EnumMessage};
+use bevy_enum_event::{EnumEntityEvent, EnumEvent};
 
 // Test unit variants
-#[derive(EnumMessage, Clone, Copy, Debug, PartialEq)]
+#[derive(EnumEvent, Clone, Copy, Debug, PartialEq)]
 #[allow(dead_code)]
 enum UnitEnum {
     A,
@@ -23,7 +23,7 @@ fn test_unit_variants() {
 }
 
 // Test tuple variants
-#[derive(EnumMessage, Clone, Debug)]
+#[derive(EnumEvent, Clone, Debug)]
 #[allow(dead_code)]
 enum TupleEnum {
     Single(u32),
@@ -46,7 +46,7 @@ fn test_tuple_variants() {
 }
 
 // Test named field variants
-#[derive(EnumMessage, Clone, Debug)]
+#[derive(EnumEvent, Clone, Debug)]
 #[allow(dead_code)]
 enum NamedEnum {
     SingleField { value: u32 },
@@ -72,7 +72,7 @@ fn test_named_field_variants() {
 }
 
 // Test mixed variants
-#[derive(EnumMessage, Clone, Debug)]
+#[derive(EnumEvent, Clone, Debug)]
 #[allow(dead_code)]
 enum MixedEnum {
     Unit,
@@ -96,7 +96,7 @@ fn test_mixed_variants() {
 #[cfg(feature = "deref")]
 #[test]
 fn test_deref_tuple_variant() {
-    #[derive(EnumMessage, Clone)]
+    #[derive(EnumEvent, Clone)]
     #[allow(dead_code)]
     enum DerefTuple {
         Value(String),
@@ -118,7 +118,7 @@ fn test_deref_tuple_variant() {
 #[cfg(feature = "deref")]
 #[test]
 fn test_deref_named_variant() {
-    #[derive(EnumMessage, Clone)]
+    #[derive(EnumEvent, Clone)]
     #[allow(dead_code)]
     enum DerefNamed {
         Value { data: String },
@@ -141,7 +141,7 @@ fn test_deref_named_variant() {
 // Test that multi-field variants don't have deref
 #[test]
 fn test_multi_field_variants() {
-    #[derive(EnumMessage, Clone)]
+    #[derive(EnumEvent, Clone)]
     #[allow(dead_code)]
     enum MultiField {
         Multiple(String, i32),
@@ -164,7 +164,7 @@ fn test_multi_field_variants() {
 #[cfg(feature = "deref")]
 #[test]
 fn test_multi_field_deref_with_attribute() {
-    #[derive(EnumMessage, Clone)]
+    #[derive(EnumEvent, Clone)]
     #[allow(dead_code)]
     enum MultiFieldDeref {
         Tuple(#[enum_event(deref)] String, i32),
@@ -199,7 +199,7 @@ fn test_multi_field_deref_with_attribute() {
 // Test Clone trait
 #[test]
 fn test_clone() {
-    #[derive(EnumMessage, Clone)]
+    #[derive(EnumEvent, Clone)]
     #[allow(dead_code)]
     enum CloneEnum {
         Value(String),
@@ -213,7 +213,7 @@ fn test_clone() {
 // Test Debug trait
 #[test]
 fn test_debug() {
-    #[derive(EnumMessage, Clone, Debug)]
+    #[derive(EnumEvent, Clone, Debug)]
     #[allow(dead_code)]
     enum DebugEnum {
         Value(String),
@@ -226,7 +226,7 @@ fn test_debug() {
 
 #[test]
 fn test_generic_enum_support() {
-    #[derive(EnumMessage, Clone, Debug)]
+    #[derive(EnumEvent, Clone, Debug)]
     #[allow(dead_code)]
     enum GenericEnum<T>
     where
@@ -237,7 +237,7 @@ fn test_generic_enum_support() {
         Unit,
     }
 
-    #[derive(EnumMessage, Clone, Copy, Debug)]
+    #[derive(EnumEvent, Clone, Copy, Debug)]
     #[allow(dead_code)]
     enum BorrowedEnum<'event> {
         Reference(&'event i32),
