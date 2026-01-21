@@ -6,11 +6,13 @@
 //! - Named field variants
 //! - Mixed variants in a single enum
 //! - Deref behavior for single-field variants
+//! - All three derive macros: EnumEvent, EnumMessage, EnumEntityEvent
 
-use bevy_enum_event::EnumMessage;
+use bevy_enum_event::EnumEvent;
 
 // Example 1: Unit variants only (e.g., simple state machine)
-#[derive(EnumMessage, Clone, Copy, Debug)]
+// Using EnumEvent for observer-based events triggered via world.trigger()
+#[derive(EnumEvent, Clone, Copy, Debug)]
 #[allow(dead_code)]
 pub enum PlayerState {
     Idle,
@@ -19,7 +21,8 @@ pub enum PlayerState {
 }
 
 // Example 2: Mixed variants with data (realistic game events)
-#[derive(EnumMessage, Clone, Debug)]
+// Using EnumEvent for observer-based events triggered via world.trigger()
+#[derive(EnumEvent, Clone, Debug)]
 #[allow(dead_code)]
 pub enum GameEvent {
     /// A player wins with their team name
@@ -31,7 +34,8 @@ pub enum GameEvent {
 }
 
 // Example 3: Single-field variants (benefit from deref feature)
-#[derive(EnumMessage, Clone, Debug)]
+// Using EnumEvent for observer-based events triggered via world.trigger()
+#[derive(EnumEvent, Clone, Debug)]
 #[allow(dead_code)]
 pub enum NetworkEvent {
     MessageReceived(String),
@@ -83,7 +87,10 @@ fn main() {
         println!("  Message length (via .0): {} chars", msg.0.len());
     }
 
-    println!("\nAll event types work seamlessly with Bevy's event system!");
-    println!("\nLibrary authors extending bevy_enum_event can use the same");
-    println!("snake_case conversion logic (PascalCase → snake_case) in their own macros.");
+    println!("\n=== Macro Summary ===");
+    println!("EnumEvent    - Observer-based global events (triggers + observers)");
+    println!("EnumMessage  - Buffered messages (MessageWriter + MessageReader)");
+    println!("EnumEntityEvent - Entity-targeted observer events with propagation\n");
+
+    println!("All event types work seamlessly with Bevy's event system!");
 }
