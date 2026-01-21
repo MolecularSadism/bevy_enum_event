@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.3] - 2026-01-21
+
+### Added
+- Three-macro system for complete Bevy 0.17+ nomenclature support:
+  - `EnumEvent` - Observer-based global events (triggered via `world.trigger()`)
+  - `EnumMessage` - Buffered messages (written via `MessageWriter`, read via `MessageReader`)
+  - `EnumEntityEvent` - Entity-targeted observer events with propagation
+- Comprehensive tests for `EnumMessage` with `MessageWriter`/`MessageReader` integration
+- Integration tests demonstrating all three patterns working together
+- "Choosing the Right Macro" guide in README
+
+### Changed
+- Renamed internal `EnumMessage` to `EnumEvent` (generates `Event` types for observers)
+- Added new `EnumMessage` macro (generates `Message` types for buffered communication)
+- Generated modules now include `use super::*;` for standard library type access
+- Updated all documentation to reflect correct Bevy 0.17+ terminology
+
 ## [0.3.2] - 2026-01-20
 
 ### Changed
