@@ -32,7 +32,7 @@ enum GameEvent {
 
 ```toml
 [dependencies]
-bevy_enum_event = "0.3.3"
+bevy_enum_event = "0.3.2"
 ```
 
 ## Macros
