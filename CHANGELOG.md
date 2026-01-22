@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.3] - 2026-01-21
+## [0.3.2] - 2026-01-22
 
 ### Added
 - Three-macro system for complete Bevy 0.17+ nomenclature support:
@@ -12,22 +12,21 @@
 - "Choosing the Right Macro" guide in README
 
 ### Changed
-- Renamed internal `EnumMessage` to `EnumEvent` (generates `Event` types for observers)
-- Added new `EnumMessage` macro (generates `Message` types for buffered communication)
 - Generated modules now include `use super::*;` for standard library type access
 - Updated all documentation to reflect correct Bevy 0.17+ terminology
 
-## [0.3.2] - 2026-01-20
+## [0.3.1] - 2026-01-20
 
-### Changed
-- Renamed `EnumEvent` to `EnumMessage` to align with Bevy 0.17+ nomenclature (Event → Message)
-- `EnumEntityEvent` remains unchanged
+### Fixed
+- README update for crates.io (0.3.0 was published with outdated README)
 
 ## [0.3.0] - 2026-01-20
 
 ### Changed
 - Migrated to Bevy 0.18
 - Simplified documentation
+
+Note: 0.3.0 was published to crates.io but not pushed to GitHub
 
 ## [0.2.0] - 2025-10-20
 
