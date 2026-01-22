@@ -15,11 +15,18 @@
 - Generated modules now include `use super::*;` for standard library type access
 - Updated all documentation to reflect correct Bevy 0.17+ terminology
 
+## [0.3.1] - 2026-01-20
+
+### Fixed
+- README update for crates.io (0.3.0 was published with outdated README)
+
 ## [0.3.0] - 2026-01-20
 
 ### Changed
 - Migrated to Bevy 0.18
 - Simplified documentation
+
+Note: 0.3.0 was published to crates.io but not pushed to GitHub
 
 ## [0.2.0] - 2025-10-20
 
