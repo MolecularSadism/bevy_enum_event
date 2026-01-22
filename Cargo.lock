@@ -186,7 +186,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_enum_event"
-version = "0.3.3"
+version = "0.3.2"
 dependencies = [
  "bevy",
  "proc-macro2",
